@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:22:20 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/04 13:55:47 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/05 14:30:42 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -245,6 +245,7 @@ int	main(void)
 	char		*input_line;
 	t_data		data;
 	int			i;
+	char		*type[] = {"WORD", "PIPE", "REDIRECT_IN", "REDIRECT_OUT", "REDIRECT_HEREDOC", "REDIRECT_APPEND", "PAREN_LEFT", "PAREN_RIGHT", "LOGICAL_AND", "LOGICAL_OR"};
 
 	while (1)
 	{
@@ -257,7 +258,7 @@ int	main(void)
 		while (++i < data.token_num)
 		{
 			printf("token: [%s]\n", data.token_arr[i].token);
-			printf("type: %d\n", data.token_arr[i].type);
+			printf("type: %s\n", type[data.token_arr[i].type]);
 		}
 	}
 	return (EXIT_SUCCESS);
