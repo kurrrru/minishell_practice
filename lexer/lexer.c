@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:22:20 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/05 14:30:42 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/05 21:10:23 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -202,8 +202,6 @@ void	lexer(const char *input_line, t_data *data)
 		else if (sign_len((char *)&input_line[i]) > 0 && !dquote && !squote)
 		{
 			data->token_arr[j++].token = xstrndup((char *)&input_line[i], sign_len((char *)&input_line[i]));
-			// printf("sign_len: %d\n", sign_len((char *)&input_line[i]));
-			// printf("i: %d\n", i);
 			input_line += sign_len((char *)&input_line[i]) + i;
 			i = -1;
 		}
