@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:24:54 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/09 11:48:15 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/09 17:35:32 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,7 +84,7 @@ static t_node *new_connector_node(t_token token)
 t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) // depthを追加
 {
     t_node *root = NULL;
-    
+
 	// fprintf(stderr, "index: %d, token_num: %d\n", *index, data->token_num); // 追加 for debug
     while (*index < data->token_num)
     {
@@ -167,6 +167,7 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
                 if (*index < data->token_num && data->token_arr[*index].type == WORD)
                 {
                     t_token command_token = data->token_arr[*index];
+					free(root->command); // 追加
                     root->command = xstrndup(command_token.token, strlen(command_token.token));
                 }
             }

@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:22:20 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/05 23:20:30 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/09 17:28:54 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -236,6 +236,16 @@ void	assign_token_type(t_data *data)
 		else
 			data->token_arr[i].type = WORD;
 	}
+}
+
+void	free_data(t_data *data)
+{
+	int	i;
+
+	i = -1;
+	while (++i < data->token_num)
+		free(data->token_arr[i].token);
+	free(data->token_arr);
 }
 
 // int	main(void)

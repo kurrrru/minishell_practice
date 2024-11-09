@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:04:10 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/03 22:39:17 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/09 17:29:05 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,5 +45,6 @@ typedef struct s_data
 
 void	lexer(const char *input_line, t_data *data);
 void	assign_token_type(t_data *data);
+void	free_data(t_data *data);
 
 #endif

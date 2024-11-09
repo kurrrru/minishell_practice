@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/09 12:02:36 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/09 17:37:14 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,7 @@ static char *ft_strjoin(const char *s1, const char *s2)
 
 static char *get_path(char *command)
 {
+	char	*path_part;
 	char	*path;
 	char	*path_env;
 	char	**path_list;
@@ -177,15 +178,16 @@ static char *get_path(char *command)
 	i = 0;
 	while (path_list[i])
 	{
-		path = ft_strjoin(path_list[i], "/");
-		path = ft_strjoin(path, command);
+		path_part = ft_strjoin(path_list[i], "/");
+		path = ft_strjoin(path_part, command);
+		free(path_part);
 		if (access(path, F_OK) == 0)
 			break ;
 		free(path);
 		path = NULL;
 		i++;
 	}
-	free(path_list);
+	free_split(path_list);
 	return (path);
 }
 
@@ -364,6 +366,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 			if (exec.in_fd == -1)
 			{
 				perror("open");
+				exit(EXIT_FAILURE);
 			}
 		}
 		else if (node->redirect[i].type == OUT)
@@ -373,6 +376,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 			if (exec.out_fd == -1)
 			{
 				perror("open");
+				exit(EXIT_FAILURE);
 			}
 		}
 		else if (node->redirect[i].type == APPEND)
@@ -382,6 +386,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 			if (exec.out_fd == -1)
 			{
 				perror("open");
+				exit(EXIT_FAILURE);
 			}
 		}
 		else if (node->redirect[i].type == HEREDOC)
@@ -480,6 +485,8 @@ int main()
 		if (!root)
 			return (0);
 		// dump_tree(root);
+		free_data(&data);
 		free_tree(root);
+		free(input_data);
 	}
 }
