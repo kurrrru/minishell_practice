@@ -6,13 +6,15 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/10 16:11:17 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/11 00:49:36 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "exec.h"
 #include <readline/readline.h>
 #include <readline/history.h>
+
+int	run_tree(t_node *root, int in_fd, int out_fd);
 
 static void	ft_bzero(void *s, size_t n)
 {
@@ -189,6 +191,12 @@ static char *get_path(char *command)
 		i++;
 	}
 	free_split(path_list);
+	if (!path)
+	{
+		write(STDERR_FILENO, command, strlen(command));
+		write(STDERR_FILENO, ": command not found\n", 20);
+		exit(127);
+	}
 	return (path);
 }
 
@@ -203,14 +211,14 @@ int	run(t_node *node, int in_fd, int out_fd)
 	}
 	if (node->type == NODE_LOGICAL_AND)
 	{
-		if (run(node->left, in_fd, out_fd) == 0)
-			return (run(node->right, 0, 1));
+		if (run_tree(node->left, in_fd, out_fd) == 0)
+			return (run_tree(node->right, 0, 1));
 		return (1);
 	}
 	else if (node->type == NODE_LOGICAL_OR)
 	{
-		if (run(node->left, in_fd, out_fd) != 0)
-			return (run(node->right, 0, 1));
+		if (run_tree(node->left, in_fd, out_fd) != 0)
+			return (run_tree(node->right, 0, 1));
 		return (1);
 	}
 	else if (node->type == NODE_PIPE)
@@ -223,10 +231,6 @@ int	run(t_node *node, int in_fd, int out_fd)
 			perror("pipe");
 			exit(EXIT_FAILURE);
 		}
-		// run(node->left, in_fd, pipe_fd[1]);
-		// close(pipe_fd[1]);
-		// status = run(node->right, pipe_fd[0], out_fd);
-		// close(pipe_fd[0]);
 		if (!node->left)
 		{
 			write(2, "left is NULL\n", 13);
@@ -325,7 +329,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 				close(pipe_fd[0]);
 			}
 		}
-		return (status);
+		return (WEXITSTATUS(status));
 	}
 	exec.command = get_path(node->command);
 	exec.argv = ft_calloc(node->arg_num + 2, sizeof(char *));
@@ -387,7 +391,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 	exit(EXIT_FAILURE);
 }
 
-int	run_tree(t_node *root)
+int	run_tree(t_node *root, int in_fd, int out_fd)
 {
 	if (!root)
 	{
@@ -405,7 +409,7 @@ int	run_tree(t_node *root)
 		}
 		if (pid == 0)
 		{
-			run(root, 0, 1);
+			run(root, in_fd, out_fd);
 		}
 		else
 		{
@@ -414,7 +418,7 @@ int	run_tree(t_node *root)
 			return (WEXITSTATUS(status));
 		}
 	}
-	return (run(root, 0, 1));
+	return (run(root, in_fd, out_fd));
 }
 
 int main()
@@ -433,7 +437,7 @@ int main()
 		assign_token_type(&data);
 		parser(&root, &data);
 		// dump_tree(root);
-		run_tree(root);
+		run_tree(root, 0, 1);
 		// dump_tree(root);
 		free_data(&data);
 		free_tree(root);

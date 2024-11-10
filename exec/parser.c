@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:24:54 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/10 13:44:39 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/10 23:34:38 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,14 +85,12 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
 {
     t_node *root = NULL;
 
-	// fprintf(stderr, "index: %d, token_num: %d\n", *index, data->token_num); // 追加 for debug
     while (*index < data->token_num)
     {
         t_token token = data->token_arr[*index];
         if (token.type == PIPE || token.type == LOGICAL_AND || token.type == LOGICAL_OR)
         {
-			// fprintf(stderr, "depth value: %d, token: %s\n", depth, token.token); // 追加 for debug
-			if ((token.type == LOGICAL_AND || token.type == LOGICAL_OR) && depth > 0) // 追加
+			if ((token.type == LOGICAL_AND || token.type == LOGICAL_OR) && depth > 0)
 			{
 				(*index)--; // 辻褄合わせ
 				return root;
@@ -101,15 +99,18 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
             conn_node->left = root;
             root = conn_node;
             (*index)++;
-            //↓この行で、木が右下に伸びていっちゃってる。returnの条件を変えてやるのは難しそう
-            conn_node->right = parse_data(data, index, paren_count, depth + 1); // depthを追加
+            conn_node->right = parse_data(data, index, paren_count, depth + 1);
         }
         else if (token.type == PAREN_LEFT)
         {
+			if (*index > 0 && data->token_arr[*index - 1].type == PAREN_RIGHT)
+			{
+				fprintf(stderr, "Syntax error: unexpected word after ')'\n");
+				exit(EXIT_FAILURE);
+			}
             (*paren_count)++;
             (*index)++;
-            t_node *sub_tree = parse_data(data, index, paren_count, 0); // depthを追加
-            // (*index)++; この行コメントアウトしたらうまくいくかも
+            t_node *sub_tree = parse_data(data, index, paren_count, 0);
             if (root == NULL)
                 root = sub_tree;
             else
@@ -172,6 +173,11 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
         }
         else if (token.type == WORD)
         {
+			if (*index > 0 && data->token_arr[*index - 1].type == PAREN_RIGHT)
+			{
+				fprintf(stderr, "Syntax error: unexpected word after ')'\n");
+				exit(EXIT_FAILURE);
+			}
             if (root == NULL)
                 root = new_command_node(token);
             else
