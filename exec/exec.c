@@ -6,12 +6,13 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/09 17:37:14 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/10 16:11:17 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "exec.h"
 #include <readline/readline.h>
+#include <readline/history.h>
 
 static void	ft_bzero(void *s, size_t n)
 {
@@ -324,30 +325,6 @@ int	run(t_node *node, int in_fd, int out_fd)
 				close(pipe_fd[0]);
 			}
 		}
-		// int pid2;
-		// if (node->right->type == NODE_COMMAND)
-		// {
-		// 	pid2 = fork();
-		// 	if (pid == -1)
-		// 	{
-		// 		perror("fork");
-		// 		exit(EXIT_FAILURE);
-		// 	}
-		// 	if (pid == 0)
-		// 	{
-		// 		run(node->right, pipe_fd[0], out_fd);
-		// 	}
-		// 	else
-		// 	{
-		// 		close(pipe_fd[0]);
-		// 		waitpid(pid, &status, 0);
-		// 	}
-		// }
-		// else
-		// {
-		// 	status = run(node->right, pipe_fd[0], out_fd);
-		// 	close(pipe_fd[0]);
-		// }
 		return (status);
 	}
 	exec.command = get_path(node->command);
@@ -395,33 +372,6 @@ int	run(t_node *node, int in_fd, int out_fd)
 			exit(EXIT_FAILURE);
 		}
 	}
-	// int pid = fork();
-	// if (pid == -1)
-	// {
-	// 	perror("fork");
-	// 	exit(EXIT_FAILURE);
-	// }
-	// if (pid == 0)
-	// {
-	// 	if (exec.in_fd != 0)
-	// 	{
-	// 		dup2(exec.in_fd, 0);
-	// 		close(exec.in_fd);
-	// 	}
-	// 	if (exec.out_fd != 1)
-	// 	{
-	// 		dup2(exec.out_fd, 1);
-	// 		close(exec.out_fd);
-	// 	}
-	// 	execve(exec.command, exec.argv, NULL);
-	// 	perror("execve");
-	// 	exit(EXIT_FAILURE);
-	// }
-	// int status;
-	// waitpid(pid, &status, 0);
-	// free(exec.command);
-	// free(exec.argv);
-	// return (WEXITSTATUS(status));
 	if (exec.in_fd != 0)
 	{
 		dup2(exec.in_fd, 0);
@@ -476,14 +426,14 @@ int main()
 	while (1)
 	{
 		input_data = readline("parser$ ");
+		add_history(input_data);
 		if (!input_data)
 			break;
 		lexer(input_data, &data);
 		assign_token_type(&data);
 		parser(&root, &data);
+		// dump_tree(root);
 		run_tree(root);
-		if (!root)
-			return (0);
 		// dump_tree(root);
 		free_data(&data);
 		free_tree(root);

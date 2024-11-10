@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:24:54 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/09 17:35:32 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/10 13:44:39 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,13 +163,6 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
                     root->redirect = realloc(root->redirect, sizeof(t_redirect) * root->redirect_capacity);
                 }
                 root->redirect[root->redirect_num++] = redirect;
-                (*index)++;
-                if (*index < data->token_num && data->token_arr[*index].type == WORD)
-                {
-                    t_token command_token = data->token_arr[*index];
-					free(root->command); // 追加
-                    root->command = xstrndup(command_token.token, strlen(command_token.token));
-                }
             }
             else
             {
@@ -193,10 +186,6 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
             }
         }
         (*index)++;
-        //右上に木を伸ばしていく方法考えてる
-        // token = data->token_arr[*index];
-        // if ((token.type == PIPE || token.type == LOGICAL_AND || token.type == LOGICAL_OR) && *paren_count == 0)
-        //     return root;
     }
     return root;
 }
