@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:20:33 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/08 15:01:43 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/11 12:34:17 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ typedef struct s_node
 	int			arg_num;
 	int			arg_capacity;
 	char		**argv;
+	int			error_flag; // 0: no error, 1: syntax error
 	struct s_node		*left;
 	struct s_node		*right;
 } t_node;
