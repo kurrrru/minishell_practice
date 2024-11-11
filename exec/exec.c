@@ -6,11 +6,12 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/11 00:49:36 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/11 23:30:12 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "exec.h"
+#include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
@@ -167,11 +168,10 @@ static char *get_path(char *command)
 		exit(127);
 	}
 	path_env = getenv("PATH");
-	if (!path_env)
-	{
-		perror("getenv");
-		exit(EXIT_FAILURE);
-	}
+	if (path_env)
+		path_env = ft_strdup(path_env);
+	else
+		path_env = getcwd(NULL, 0);
 	path_list = ft_split(path_env, ':');
 	if (!path_list)
 	{
@@ -197,6 +197,7 @@ static char *get_path(char *command)
 		write(STDERR_FILENO, ": command not found\n", 20);
 		exit(127);
 	}
+	free(path_env);
 	return (path);
 }
 
