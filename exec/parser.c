@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:24:54 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/10 23:34:38 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/12 22:49:54 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,10 @@ static t_node *new_command_node(t_token token)
 {
     t_node *node = (t_node *)xmalloc(sizeof(t_node));
     node->type = NODE_COMMAND;
-    node->command = xstrndup(token.token, strlen(token.token));
+	if (token.token == NULL)
+		node->command = NULL;
+	else
+	    node->command = xstrndup(token.token, strlen(token.token));
     node->redirect_num = 0;
     node->redirect_capacity = 2;
     node->redirect = (t_redirect *)xmalloc(sizeof(t_redirect) * node->redirect_capacity);
@@ -142,7 +145,7 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
                  token.type == REDIRECT_APPEND || token.type == REDIRECT_HEREDOC)
         {
             if (root == NULL)
-                root = new_command_node((t_token){.token = "", .type = WORD});
+                root = new_command_node((t_token){.token = NULL, .type = WORD});
             (*index)++;
             if (*index < data->token_num && data->token_arr[*index].type == WORD)
             {
@@ -183,12 +186,17 @@ t_node *parse_data(t_data *data, int *index, int *paren_count, const int depth) 
             else
             {
                 t_node *cmd_node = root;
-                if (cmd_node->arg_num >= cmd_node->arg_capacity)
-                {
-                    cmd_node->arg_capacity *= 2;
-                    cmd_node->argv = realloc(cmd_node->argv, sizeof(char *) * cmd_node->arg_capacity);
-                }
-                cmd_node->argv[cmd_node->arg_num++] = xstrndup(token.token, strlen(token.token));
+				if (cmd_node->command == NULL)
+					cmd_node->command = xstrndup(token.token, strlen(token.token));
+				else
+				{
+					if (cmd_node->arg_num >= cmd_node->arg_capacity)
+					{
+						cmd_node->arg_capacity *= 2;
+						cmd_node->argv = realloc(cmd_node->argv, sizeof(char *) * cmd_node->arg_capacity);
+					}
+					cmd_node->argv[cmd_node->arg_num++] = xstrndup(token.token, strlen(token.token));
+				}
             }
         }
         (*index)++;
