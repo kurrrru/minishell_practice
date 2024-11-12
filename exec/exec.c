@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/11 23:30:12 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/12 14:03:58 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -396,7 +396,7 @@ int	run_tree(t_node *root, int in_fd, int out_fd)
 {
 	if (!root)
 	{
-		perror("root is NULL");
+		write(2, "root is NULL\n", 13);
 		return (EXIT_SUCCESS);
 	}
 	int pid;
@@ -433,7 +433,10 @@ int main()
 		input_data = readline("parser$ ");
 		add_history(input_data);
 		if (!input_data)
+		{
+			write(2, "exit\n", 5);
 			break;
+		}
 		lexer(input_data, &data);
 		assign_token_type(&data);
 		parser(&root, &data);
