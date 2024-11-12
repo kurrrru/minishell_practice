@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/12 14:03:58 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/12 14:22:12 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -430,11 +430,15 @@ int main()
 
 	while (1)
 	{
-		input_data = readline("parser$ ");
+		if (isatty(STDERR_FILENO))
+			input_data = readline("minishell$ ");
+		else
+			input_data = readline(NULL);
 		add_history(input_data);
 		if (!input_data)
 		{
-			write(2, "exit\n", 5);
+			if (isatty(STDERR_FILENO))
+				write(2, "exit\n", 5);
 			break;
 		}
 		lexer(input_data, &data);
