@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/12 14:22:12 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/12 22:30:08 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,15 +212,17 @@ int	run(t_node *node, int in_fd, int out_fd)
 	}
 	if (node->type == NODE_LOGICAL_AND)
 	{
-		if (run_tree(node->left, in_fd, out_fd) == 0)
+		int left_status = run_tree(node->left, in_fd, out_fd);
+		if (left_status == 0)
 			return (run_tree(node->right, 0, 1));
-		return (1);
+		return (left_status);
 	}
 	else if (node->type == NODE_LOGICAL_OR)
 	{
-		if (run_tree(node->left, in_fd, out_fd) != 0)
+		int left_status = run_tree(node->left, in_fd, out_fd);
+		if (left_status != 0)
 			return (run_tree(node->right, 0, 1));
-		return (1);
+		return (left_status);
 	}
 	else if (node->type == NODE_PIPE)
 	{
