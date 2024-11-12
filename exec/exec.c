@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/12 22:30:08 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/12 22:59:35 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -334,13 +334,50 @@ int	run(t_node *node, int in_fd, int out_fd)
 		}
 		return (WEXITSTATUS(status));
 	}
-	exec.command = get_path(node->command);
-	exec.argv = ft_calloc(node->arg_num + 2, sizeof(char *));
-	exec.argv[0] = exec.command;
-	for (int i = 0; i < node->arg_num; i++)
-		exec.argv[i + 1] = node->argv[i];
 	exec.in_fd = in_fd;
 	exec.out_fd = out_fd;
+
+	int pipe_fd[2];
+	pipe_fd[0] = -1;
+	pipe_fd[1] = -1;
+	for (int i = 0; i < node->redirect_num; i++)
+	{
+		if (node->redirect[i].type == HEREDOC)
+		{
+			if (pipe_fd[0] != -1)
+			{
+				close(pipe_fd[0]);
+				close(pipe_fd[1]);
+			}
+			if (pipe(pipe_fd) == -1)
+			{
+				perror("pipe");
+				exit(EXIT_FAILURE);
+			}
+			while (1)
+			{
+				char *line = readline("> ");
+				if (!line)
+				{
+					write(2, "bash: warning: here-document delimited by end-of-file (wanted `", 61);
+					write(2, node->redirect[i].file, strlen(node->redirect[i].file));
+					write(2, "')\n", 3);
+					break ;
+				}
+				if (strcmp(line, node->redirect[i].file) == 0)
+				{
+					free(line);
+					break ;
+				}
+				write(pipe_fd[1], line, strlen(line));
+				write(pipe_fd[1], "\n", 1);
+				free(line);
+			}
+		}
+	}
+	close(exec.in_fd);
+	exec.in_fd = pipe_fd[0];
+	close(pipe_fd[1]);
 	for (int i = 0; i < node->redirect_num; i++)
 	{
 		if (node->redirect[i].type == IN)
@@ -373,11 +410,6 @@ int	run(t_node *node, int in_fd, int out_fd)
 				exit(EXIT_FAILURE);
 			}
 		}
-		else if (node->redirect[i].type == HEREDOC)
-		{
-			write(1, "heredoc not implemented\n", 25);
-			exit(EXIT_FAILURE);
-		}
 	}
 	if (exec.in_fd != 0)
 	{
@@ -389,6 +421,11 @@ int	run(t_node *node, int in_fd, int out_fd)
 		dup2(exec.out_fd, 1);
 		close(exec.out_fd);
 	}
+	exec.command = get_path(node->command);
+	exec.argv = ft_calloc(node->arg_num + 2, sizeof(char *));
+	exec.argv[0] = exec.command;
+	for (int i = 0; i < node->arg_num; i++)
+		exec.argv[i + 1] = node->argv[i];
 	execve(exec.command, exec.argv, NULL);
 	perror("execve");
 	exit(EXIT_FAILURE);
@@ -446,7 +483,7 @@ int main()
 		lexer(input_data, &data);
 		assign_token_type(&data);
 		parser(&root, &data);
-		// dump_tree(root);
+		dump_tree(root);
 		run_tree(root, 0, 1);
 		// dump_tree(root);
 		free_data(&data);
