@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:22:20 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 00:09:51 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 01:52:28 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,41 +41,26 @@ static void	*ft_memcpy(void *dest, const void *src, size_t n)
 	return (dest);
 }
 
-static void	*xmalloc(size_t size)
-{
-	void	*ptr;
-
-	ptr = malloc(size);
-	if (!ptr)
-	{
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
-	ft_bzero(ptr, size);
-	return (ptr);
-}
-
-static void	*xrealloc(void *ptr, size_t old_size, size_t new_size)
+static void	*ft_realloc(void *ptr, size_t old_size, size_t new_size)
 {
 	void	*new_ptr;
 
 	new_ptr = malloc(new_size);
 	if (!new_ptr)
-	{
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
+		return (NULL);
 	ft_memcpy(new_ptr, ptr, old_size);
 	free(ptr);
 	return (new_ptr);
 }
 
-static char	*xstrndup(const char *s, size_t n)
+static char	*ft_strndup(const char *s, size_t n)
 {
 	char	*new_s;
 	size_t	i;
 
-	new_s = (char *)xmalloc(n + 1);
+	new_s = (char *)malloc(n + 1);
+	if (!new_s)
+		return (NULL);
 	i = 0;
 	while (i < n && s[i])
 	{
@@ -122,7 +107,7 @@ static int	sign_len(char *s)
 	return (0);
 }
 
-void	lexer(const char *input_line, t_data *data)
+int	lexer(const char *input_line, t_data *data)
 {
 	int		dquote;
 	int		squote;
@@ -173,9 +158,15 @@ void	lexer(const char *input_line, t_data *data)
 	if (squote || dquote)
 	{
 		write(STDERR_FILENO, "syntax error\n", 13);
-		exit(EXIT_FAILURE);
+		return (EXIT_INVALID_INPUT);
 	}
-	data->token_arr = (t_token *)xmalloc(sizeof(t_token) * data->token_num + 1);
+	data->token_arr = (t_token *)malloc(sizeof(t_token) * data->token_num + 1);
+	if (!data->token_arr)
+	{
+		perror("malloc");
+		return (EXIT_FAILURE);
+	}
+	ft_bzero(data->token_arr, sizeof(t_token) * data->token_num + 1);
 	i = -1;
 	j = 0;
 	while (input_line[++i])
@@ -195,17 +186,30 @@ void	lexer(const char *input_line, t_data *data)
 				else if (input_line[i] == '\'' && !dquote)
 					squote = !squote;
 			}
-			data->token_arr[j++].token = xstrndup(input_line, i);
+			data->token_arr[j++].token = ft_strndup(input_line, i);
+			if (!data->token_arr[j - 1].token)
+			{
+				perror("ft_strndup");
+				free_data(data);
+				return (EXIT_FAILURE);
+			}
 			input_line += i;
 			i = -1;
 		}
 		else if (sign_len((char *)&input_line[i]) > 0 && !dquote && !squote)
 		{
-			data->token_arr[j++].token = xstrndup((char *)&input_line[i], sign_len((char *)&input_line[i]));
+			data->token_arr[j++].token = ft_strndup((char *)&input_line[i], sign_len((char *)&input_line[i]));
+			if (!data->token_arr[j - 1].token)
+			{
+				perror("ft_strndup");
+				free_data(data);
+				return (EXIT_FAILURE);
+			}
 			input_line += sign_len((char *)&input_line[i]) + i;
 			i = -1;
 		}
 	}
+	return (EXIT_SUCCESS);
 }
 
 void	assign_token_type(t_data *data)

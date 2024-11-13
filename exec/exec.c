@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 00:03:20 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 01:56:09 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -483,6 +483,7 @@ int main()
 	char *input_data;
 	t_data data;
 	t_node *root;
+	int status;
 
 	while (1)
 	{
@@ -497,14 +498,16 @@ int main()
 				write(2, "exit\n", 5);
 			break;
 		}
-		lexer(input_data, &data);
+		status = lexer(input_data, &data);
+		free(input_data);
+		if (status != 0)
+			continue ;
 		assign_token_type(&data);
 		parser(&root, &data);
+		free_data(&data);
 		dump_tree(root);
 		run_tree(root, 0, 1);
 		// dump_tree(root);
-		free_data(&data);
 		free_tree(root);
-		free(input_data);
 	}
 }
