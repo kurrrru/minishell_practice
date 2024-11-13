@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/13 22:14:18 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 00:03:20 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -201,6 +201,94 @@ static char *get_path(char *command)
 	return (path);
 }
 
+static void	redirect_handler(t_node *node, int *in_fd, int *out_fd)
+{
+	int heredoc_fd[2];
+	heredoc_fd[0] = -1;
+	heredoc_fd[1] = -1;
+	for (int i = 0; i < node->redirect_num; i++)
+	{
+		if (node->redirect[i].type == HEREDOC)
+		{
+			if (heredoc_fd[0] != -1)
+			{
+				if (heredoc_fd[0] != 0)
+					close(heredoc_fd[0]);
+				if (heredoc_fd[1] != 1)
+					close(heredoc_fd[1]);
+			}
+			if (pipe(heredoc_fd) == -1)
+			{
+				perror("pipe");
+				exit(EXIT_FAILURE);
+			}
+			while (1)
+			{
+				char *line = readline("> ");
+				if (!line)
+				{
+					write(2, "bash: warning: here-document delimited by end-of-file (wanted `", 61);
+					write(2, node->redirect[i].file, strlen(node->redirect[i].file));
+					write(2, "')\n", 3);
+					break ;
+				}
+				if (strcmp(line, node->redirect[i].file) == 0)
+				{
+					free(line);
+					break ;
+				}
+				write(heredoc_fd[1], line, strlen(line));
+				write(heredoc_fd[1], "\n", 1);
+				free(line);
+			}
+		}
+	}
+	if (heredoc_fd[0] != -1)
+	{
+		if (*in_fd != 0)
+			close(*in_fd);
+		*in_fd = heredoc_fd[0];
+		if (heredoc_fd[1] != 1)
+			close(heredoc_fd[1]);
+	}
+	for (int i = 0; i < node->redirect_num; i++)
+	{
+		if (node->redirect[i].type == IN)
+		{
+			if (*in_fd != 0)
+				close(*in_fd);
+			*in_fd = open(node->redirect[i].file, O_RDONLY);
+			if (*in_fd == -1)
+			{
+				perror("open");
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if (node->redirect[i].type == OUT)
+		{
+			if (*out_fd != 1)
+				close(*out_fd);
+			*out_fd = open(node->redirect[i].file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+			if (*out_fd == -1)
+			{
+				perror("open");
+				exit(EXIT_FAILURE);
+			}
+		}
+		else if (node->redirect[i].type == APPEND)
+		{
+			if (*out_fd != 1)
+				close(*out_fd);
+			*out_fd = open(node->redirect[i].file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+			if (*out_fd == -1)
+			{
+				perror("open");
+				exit(EXIT_FAILURE);
+			}
+		}
+	}
+}
+
 int	run(t_node *node, int in_fd, int out_fd)
 {
 	t_exec	exec;
@@ -212,16 +300,18 @@ int	run(t_node *node, int in_fd, int out_fd)
 	}
 	if (node->type == NODE_LOGICAL_AND)
 	{
+		redirect_handler(node, &in_fd, &out_fd);
 		int left_status = run_tree(node->left, in_fd, out_fd);
 		if (left_status == 0)
-			return (run_tree(node->right, 0, 1));
+			return (run_tree(node->right, in_fd, out_fd));
 		return (left_status);
 	}
 	else if (node->type == NODE_LOGICAL_OR)
 	{
+		redirect_handler(node, &in_fd, &out_fd);
 		int left_status = run_tree(node->left, in_fd, out_fd);
 		if (left_status != 0)
-			return (run_tree(node->right, 0, 1));
+			return (run_tree(node->right, in_fd, out_fd));
 		return (left_status);
 	}
 	else if (node->type == NODE_PIPE)
@@ -229,6 +319,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 		int	pipe_fd[2];
 		int status;
 
+		redirect_handler(node, &in_fd, &out_fd);
 		if (pipe(pipe_fd) == -1)
 		{
 			perror("pipe");
@@ -336,84 +427,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 	}
 	exec.in_fd = in_fd;
 	exec.out_fd = out_fd;
-
-	int heredoc_fd[2];
-	heredoc_fd[0] = -1;
-	heredoc_fd[1] = -1;
-	for (int i = 0; i < node->redirect_num; i++)
-	{
-		if (node->redirect[i].type == HEREDOC)
-		{
-			if (heredoc_fd[0] != -1)
-			{
-				close(heredoc_fd[0]);
-				close(heredoc_fd[1]);
-			}
-			if (pipe(heredoc_fd) == -1)
-			{
-				perror("pipe");
-				exit(EXIT_FAILURE);
-			}
-			while (1)
-			{
-				char *line = readline("> ");
-				if (!line)
-				{
-					write(2, "bash: warning: here-document delimited by end-of-file (wanted `", 61);
-					write(2, node->redirect[i].file, strlen(node->redirect[i].file));
-					write(2, "')\n", 3);
-					break ;
-				}
-				if (strcmp(line, node->redirect[i].file) == 0)
-				{
-					free(line);
-					break ;
-				}
-				write(heredoc_fd[1], line, strlen(line));
-				write(heredoc_fd[1], "\n", 1);
-				free(line);
-			}
-		}
-	}
-	if (heredoc_fd[0] != -1)
-	{
-		close(exec.in_fd);
-		exec.in_fd = heredoc_fd[0];
-		close(heredoc_fd[1]);
-	}
-	for (int i = 0; i < node->redirect_num; i++)
-	{
-		if (node->redirect[i].type == IN)
-		{
-			close(exec.in_fd);
-			exec.in_fd = open(node->redirect[i].file, O_RDONLY);
-			if (exec.in_fd == -1)
-			{
-				perror("open");
-				exit(EXIT_FAILURE);
-			}
-		}
-		else if (node->redirect[i].type == OUT)
-		{
-			close(exec.out_fd);
-			exec.out_fd = open(node->redirect[i].file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-			if (exec.out_fd == -1)
-			{
-				perror("open");
-				exit(EXIT_FAILURE);
-			}
-		}
-		else if (node->redirect[i].type == APPEND)
-		{
-			close(exec.out_fd);
-			exec.out_fd = open(node->redirect[i].file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-			if (exec.out_fd == -1)
-			{
-				perror("open");
-				exit(EXIT_FAILURE);
-			}
-		}
-	}
+	redirect_handler(node, &exec.in_fd, &exec.out_fd);
 	if (exec.in_fd != 0)
 	{
 		dup2(exec.in_fd, 0);
