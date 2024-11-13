@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/12 22:59:35 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/13 22:14:18 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -337,19 +337,19 @@ int	run(t_node *node, int in_fd, int out_fd)
 	exec.in_fd = in_fd;
 	exec.out_fd = out_fd;
 
-	int pipe_fd[2];
-	pipe_fd[0] = -1;
-	pipe_fd[1] = -1;
+	int heredoc_fd[2];
+	heredoc_fd[0] = -1;
+	heredoc_fd[1] = -1;
 	for (int i = 0; i < node->redirect_num; i++)
 	{
 		if (node->redirect[i].type == HEREDOC)
 		{
-			if (pipe_fd[0] != -1)
+			if (heredoc_fd[0] != -1)
 			{
-				close(pipe_fd[0]);
-				close(pipe_fd[1]);
+				close(heredoc_fd[0]);
+				close(heredoc_fd[1]);
 			}
-			if (pipe(pipe_fd) == -1)
+			if (pipe(heredoc_fd) == -1)
 			{
 				perror("pipe");
 				exit(EXIT_FAILURE);
@@ -369,15 +369,18 @@ int	run(t_node *node, int in_fd, int out_fd)
 					free(line);
 					break ;
 				}
-				write(pipe_fd[1], line, strlen(line));
-				write(pipe_fd[1], "\n", 1);
+				write(heredoc_fd[1], line, strlen(line));
+				write(heredoc_fd[1], "\n", 1);
 				free(line);
 			}
 		}
 	}
-	close(exec.in_fd);
-	exec.in_fd = pipe_fd[0];
-	close(pipe_fd[1]);
+	if (heredoc_fd[0] != -1)
+	{
+		close(exec.in_fd);
+		exec.in_fd = heredoc_fd[0];
+		close(heredoc_fd[1]);
+	}
 	for (int i = 0; i < node->redirect_num; i++)
 	{
 		if (node->redirect[i].type == IN)
