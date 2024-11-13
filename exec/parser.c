@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:24:54 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/12 22:49:54 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/13 22:17:05 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -243,7 +243,7 @@ void	dump_node(t_node *node, int depth)
 			printf("  ");
 		printf("child: %p, %p\n", node->left, node->right);
 	}
-	else 
+	else
 	{
 		char *connector[3] = {"PIPE", "LOGICAL_AND", "LOGICAL_OR"};
 		dump_node(node->left, depth + 1);
@@ -253,6 +253,12 @@ void	dump_node(t_node *node, int depth)
 		for (int i = 0; i < depth; i++)
 			printf("  ");
 		printf("depth: %d\n", depth);
+		for (int i = 0; i < node->redirect_num; i++)
+		{
+			for (int j = 0; j < depth; j++)
+				printf("  ");
+			printf("redirect: %d %s\n", node->redirect[i].type, node->redirect[i].file);
+		}
 		dump_node(node->right, depth + 1);
 	}
 }
