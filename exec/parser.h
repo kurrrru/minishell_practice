@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:20:33 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/11 12:34:17 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 19:59:38 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ typedef enum e_node_type
 	NODE_LOGICAL_AND,
 	NODE_LOGICAL_OR,
 	NODE_COMMAND,
-} t_node_type;
+}	t_node_type;
 
 typedef enum e_redirect_type
 {
@@ -29,28 +29,33 @@ typedef enum e_redirect_type
 	OUT,
 	APPEND,
 	HEREDOC,
-} t_redirect_type;
+}	t_redirect_type;
 
 typedef struct s_redirect
 {
 	t_redirect_type	type;
 	char			*file;
-} t_redirect;
+}	t_redirect;
 
 typedef struct s_node
 {
-	t_node_type	type;
-	char		*command;
-	int			redirect_num;
-	int			redirect_capacity;
-	t_redirect	*redirect;
-	int			arg_num;
-	int			arg_capacity;
-	char		**argv;
-	int			error_flag; // 0: no error, 1: syntax error
-	struct s_node		*left;
-	struct s_node		*right;
-} t_node;
+	t_node_type		type;
+	char			*command;
+	int				redirect_num;
+	int				redirect_capacity;
+	t_redirect		*redirect;
+	int				arg_num;
+	int				arg_capacity;
+	char			**argv;
+	struct s_node	*left;
+	struct s_node	*right;
+}	t_node;
+
+typedef struct s_parse_helper
+{
+	int	index;
+	int	paren_open;
+}	t_parse_helper;
 
 void	parser(t_node **root, t_data *data);
 void	dump_node(t_node *node, int depth);

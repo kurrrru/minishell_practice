@@ -1,35 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   exec.h                                             :+:      :+:    :+:   */
+/*   config.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/08 10:32:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 20:00:10 by nkawaguc         ###   ########.fr       */
+/*   Created: 2024/11/14 19:55:28 by nkawaguc          #+#    #+#             */
+/*   Updated: 2024/11/14 19:59:56 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef EXEC_H
-# define EXEC_H
+#ifndef CONFIG_H
+# define CONFIG_H
 
-# include "parser.h"
-# include <unistd.h>
-# include <stdlib.h>
-# include <stdio.h>
-# include <string.h>
-# include <errno.h>
-# include <fcntl.h>
-# include <sys/wait.h>
-
-typedef struct s_exec
+typedef struct s_env
 {
-	char	*command;
-	char	**argv;
-	int		in_fd;
-	int		out_fd;
-}	t_exec;
+	char	*key;
+	char	*value;
+}	t_env;
 
-int	run(t_node *node, int in_fd, int out_fd);
+typedef struct s_config
+{
+	int		exit_status;
+	t_env	*envp;
+	int		envp_num;
+	int		envp_capacity;
+}	t_config;
 
 #endif
