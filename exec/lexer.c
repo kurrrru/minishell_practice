@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 22:22:20 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 01:52:28 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 21:42:34 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,7 @@ void	assign_token_type(t_data *data)
 	i = -1;
 	while (++i < data->token_num)
 	{
+		data->token_arr[i].type = WORD;
 		if (ft_strcmp(data->token_arr[i].token, "|") == 0)
 			data->token_arr[i].type = PIPE;
 		else if (ft_strcmp(data->token_arr[i].token, "<") == 0)
@@ -237,8 +238,6 @@ void	assign_token_type(t_data *data)
 			data->token_arr[i].type = LOGICAL_AND;
 		else if (ft_strcmp(data->token_arr[i].token, "||") == 0)
 			data->token_arr[i].type = LOGICAL_OR;
-		else
-			data->token_arr[i].type = WORD;
 	}
 }
 

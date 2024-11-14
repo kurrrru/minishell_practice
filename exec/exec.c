@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 01:56:09 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 21:59:02 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 #include <limits.h>
 #include <readline/readline.h>
 #include <readline/history.h>
-
-int	run_tree(t_node *root, int in_fd, int out_fd);
 
 static void	ft_bzero(void *s, size_t n)
 {
@@ -289,7 +287,7 @@ static void	redirect_handler(t_node *node, int *in_fd, int *out_fd)
 	}
 }
 
-int	run(t_node *node, int in_fd, int out_fd)
+int	run(t_node *node, int in_fd, int out_fd, t_config *config)
 {
 	t_exec	exec;
 
@@ -301,18 +299,18 @@ int	run(t_node *node, int in_fd, int out_fd)
 	if (node->type == NODE_LOGICAL_AND)
 	{
 		redirect_handler(node, &in_fd, &out_fd);
-		int left_status = run_tree(node->left, in_fd, out_fd);
-		if (left_status == 0)
-			return (run_tree(node->right, in_fd, out_fd));
-		return (left_status);
+		config->exit_status = run_tree(node->left, in_fd, out_fd, config);
+		if (config->exit_status == 0)
+			return (run_tree(node->right, in_fd, out_fd, config));
+		return (config->exit_status);
 	}
 	else if (node->type == NODE_LOGICAL_OR)
 	{
 		redirect_handler(node, &in_fd, &out_fd);
-		int left_status = run_tree(node->left, in_fd, out_fd);
-		if (left_status != 0)
-			return (run_tree(node->right, in_fd, out_fd));
-		return (left_status);
+		config->exit_status = run_tree(node->left, in_fd, out_fd, config);
+		if (config->exit_status != 0)
+			config->exit_status = run_tree(node->right, in_fd, out_fd, config);
+		return (config->exit_status);
 	}
 	else if (node->type == NODE_PIPE)
 	{
@@ -349,7 +347,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 				close(pipe_fd[0]);
 				if (out_fd != 1)
 					close(out_fd);
-				run(node->left, in_fd, pipe_fd[1]);
+				run(node->left, in_fd, pipe_fd[1], config);
 			}
 			else
 			{
@@ -366,7 +364,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 					{
 						if (in_fd != 0)
 							close(in_fd);
-						run(node->right, pipe_fd[0], out_fd);
+						run(node->right, pipe_fd[0], out_fd, config);
 					}
 					else
 					{
@@ -382,7 +380,7 @@ int	run(t_node *node, int in_fd, int out_fd)
 					if (in_fd != 0)
 						close(in_fd);
 					int status2;
-					status = run(node->right, pipe_fd[0], 1);
+					status = run(node->right, pipe_fd[0], out_fd, config);
 					waitpid(pid1, &status2, 0);
 					close(pipe_fd[0]);
 				}
@@ -403,23 +401,23 @@ int	run(t_node *node, int in_fd, int out_fd)
 					close(pipe_fd[1]);
 					if (in_fd != 0)
 						close(in_fd);
-					run(node->right, pipe_fd[0], out_fd);
+					run(node->right, pipe_fd[0], out_fd, config);
 				}
 				else
 				{
 					close(pipe_fd[0]);
 					if (out_fd != 1)
 						close(out_fd);
-					status = run(node->left, in_fd, pipe_fd[1]);
+					status = run(node->left, in_fd, pipe_fd[1], config);
 					close(pipe_fd[1]);
 					waitpid(pid2, &status, 0);
 				}
 			}
 			else
 			{
-				status = run(node->left, in_fd, pipe_fd[1]);
+				status = run(node->left, in_fd, pipe_fd[1], config);
 				close(pipe_fd[1]);
-				status = run(node->right, pipe_fd[0], out_fd);
+				status = run(node->right, pipe_fd[0], out_fd, config);
 				close(pipe_fd[0]);
 			}
 		}
@@ -443,12 +441,23 @@ int	run(t_node *node, int in_fd, int out_fd)
 	exec.argv[0] = exec.command;
 	for (int i = 0; i < node->arg_num; i++)
 		exec.argv[i + 1] = node->argv[i];
-	execve(exec.command, exec.argv, NULL);
+	exec.argv[node->arg_num + 1] = NULL;
+	exec.envp = NULL;
+	if (config->envp_num > 0)
+	{
+		exec.envp = make_envp(config);
+		if (!exec.envp)
+		{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+	}
+	execve(exec.command, exec.argv, exec.envp);
 	perror("execve");
 	exit(EXIT_FAILURE);
 }
 
-int	run_tree(t_node *root, int in_fd, int out_fd)
+int	run_tree(t_node *root, int in_fd, int out_fd, t_config *config)
 {
 	if (!root)
 	{
@@ -466,7 +475,7 @@ int	run_tree(t_node *root, int in_fd, int out_fd)
 		}
 		if (pid == 0)
 		{
-			run(root, in_fd, out_fd);
+			run(root, in_fd, out_fd, config);
 		}
 		else
 		{
@@ -475,16 +484,23 @@ int	run_tree(t_node *root, int in_fd, int out_fd)
 			return (WEXITSTATUS(status));
 		}
 	}
-	return (run(root, in_fd, out_fd));
+	return (run(root, in_fd, out_fd, config));
 }
 
-int main()
+int main(int argc, char **argv, char **envp)
 {
 	char *input_data;
 	t_data data;
 	t_node *root;
-	int status;
+	t_config config;
 
+	(void)argc;
+	(void)argv;
+	if (init_config(&config, envp) == EXIT_FAILURE)
+	{
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 	while (1)
 	{
 		if (isatty(STDERR_FILENO))
@@ -498,16 +514,19 @@ int main()
 				write(2, "exit\n", 5);
 			break;
 		}
-		status = lexer(input_data, &data);
+		config.exit_status = lexer(input_data, &data);
 		free(input_data);
-		if (status != 0)
+		if (config.exit_status != 0)
 			continue ;
 		assign_token_type(&data);
-		parser(&root, &data);
+		parser(&root, &data, &config);
 		free_data(&data);
+		if (config.exit_status != EXIT_SUCCESS)
+			continue ;
 		dump_tree(root);
-		run_tree(root, 0, 1);
-		// dump_tree(root);
+		config.exit_status = run_tree(root, 0, 1, &config);
 		free_tree(root);
+		printf("exit status: %d\n", config.exit_status);
 	}
+	free_config(&config);
 }
