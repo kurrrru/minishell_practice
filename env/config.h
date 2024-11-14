@@ -1,28 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   env.c                                              :+:      :+:    :+:   */
+/*   config.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/11/14 22:17:42 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 22:18:17 by nkawaguc         ###   ########.fr       */
+/*   Created: 2024/11/14 19:55:28 by nkawaguc          #+#    #+#             */
+/*   Updated: 2024/11/14 21:30:14 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "config.h"
-#include <string.h>
+#ifndef CONFIG_H
+# define CONFIG_H
 
-char	*findenv(const char *name, t_config *config)
+# include <stdlib.h>
+# include <string.h>
+
+typedef struct s_env
 {
-	int		i;
+	char	*key;
+	char	*value;
+}	t_env;
 
-	i = 0;
-	while (i < config->envp_num)
-	{
-		if (strcmp(name, config->envp[i].key) == 0)
-			return (config->envp[i].value);
-		i++;
-	}
-	return (NULL);
-}
+typedef struct s_config
+{
+	int		exit_status;
+	t_env	*envp;
+	int		envp_num;
+	int		envp_capacity;
+}	t_config;
+
+int		init_config(t_config *config, char **envp);
+void	free_config(t_config *config);
+char	**make_envp(t_config *config);
+
+#endif
