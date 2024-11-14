@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/08 14:41:09 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 21:39:19 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 21:59:02 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -524,8 +524,9 @@ int main(int argc, char **argv, char **envp)
 		if (config.exit_status != EXIT_SUCCESS)
 			continue ;
 		dump_tree(root);
-		run_tree(root, 0, 1, &config);
+		config.exit_status = run_tree(root, 0, 1, &config);
 		free_tree(root);
+		printf("exit status: %d\n", config.exit_status);
 	}
 	free_config(&config);
 }
