@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/05 23:20:33 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 19:59:38 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/14 21:00:51 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define PARSER_H
 
 # include "lexer.h"
+# include "config.h"
 
 typedef enum e_node_type
 {
@@ -57,7 +58,7 @@ typedef struct s_parse_helper
 	int	paren_open;
 }	t_parse_helper;
 
-void	parser(t_node **root, t_data *data);
+void	parser(t_node **root, t_data *data, t_config *config);
 void	dump_node(t_node *node, int depth);
 void	dump_tree(t_node *root);
 void	free_tree(t_node *root);
