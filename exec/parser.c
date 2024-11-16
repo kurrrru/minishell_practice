@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 01:42:51 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/15 15:01:10 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/16 20:37:00 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,7 @@ static t_node *new_connector_node(t_token token)
 		node->type = NODE_LOGICAL_OR;
 	node->left = NULL;
 	node->right = NULL;
+	node->arg_num = 0;
 	node->redirect_num = 0;
 	node->redirect_capacity = 2;
 	node->redirect = (t_redirect *)malloc(sizeof(t_redirect) * node->redirect_capacity);
