@@ -6,7 +6,7 @@
 /*   By: nkawaguc <nkawaguc@student.42tokyo.jp>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/14 01:42:51 by nkawaguc          #+#    #+#             */
-/*   Updated: 2024/11/14 21:14:25 by nkawaguc         ###   ########.fr       */
+/*   Updated: 2024/11/15 15:01:10 by nkawaguc         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,11 @@ t_node *parse_data(t_data *data, t_parse_helper *ps, t_config *config, const int
 			conn_node->right = parse_data(data, ps, config, depth + 1);
 			if (conn_node->right == NULL)
 			{
+				if (config->exit_status == EXIT_SUCCESS)
+				{
+					fprintf(stderr, "Syntax error: missing command after '%s'\n", token.token);
+					config->exit_status = EXIT_INVALID_INPUT;
+				}
 				free_tree(root);
 				return (NULL);
 			}
